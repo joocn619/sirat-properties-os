@@ -1,24 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
-// These paths don't require auth — the pages themselves handle redirects
-const PUBLIC_PREFIXES = [
-  '/',
-  '/auth/',
-  '/projects',
-  '/properties',
-  '/api/',
-  '/_next',
-]
-
-// Only these paths require a logged-in session
-const PROTECTED_PREFIXES = [
-  '/buyer/',
-  '/seller/',
-  '/agent/',
-  '/admin/',
-]
-
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request })
 
@@ -43,20 +25,8 @@ export async function proxy(request: NextRequest) {
     }
   )
 
-  const { pathname } = request.nextUrl
-
-  // Only protect dashboard routes
-  const isProtected = PROTECTED_PREFIXES.some((p) => pathname.startsWith(p))
-  if (!isProtected) {
-    return supabaseResponse
-  }
-
-  // Check session for protected routes
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    return NextResponse.redirect(new URL('/auth/login', request.url))
-  }
+  // Sync session cookies — no redirects, pages handle their own auth
+  await supabase.auth.getUser()
 
   return supabaseResponse
 }

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { formatCurrency } from '@/lib/format'
 import type { DashboardScope, TopbarNotification } from '@/lib/dashboard-shared'
 import type { UserRole } from '@/types'
@@ -116,15 +117,18 @@ export async function requireDashboardSession(scope: DashboardScope): Promise<Da
   let unreadNotifications = 0
   let latestNotifications: any[] = []
 
+  // Use admin client to bypass RLS for server-side data fetching
+  const admin = createAdminClient()
+
   try {
     const results = await withTimeout(
       Promise.all([
-        supabase.from('users').select('role').eq('id', user.id).single(),
-        supabase.from('profiles').select('full_name, avatar_url').eq('user_id', user.id).maybeSingle(),
-        supabase.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false),
-        supabase.from('notifications').select('id, title, body, type, is_read, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
+        admin.from('users').select('role').eq('id', user.id).single(),
+        admin.from('profiles').select('full_name, avatar_url').eq('user_id', user.id).maybeSingle(),
+        admin.from('notifications').select('id', { count: 'exact', head: true }).eq('user_id', user.id).eq('is_read', false),
+        admin.from('notifications').select('id, title, body, type, is_read, created_at').eq('user_id', user.id).order('created_at', { ascending: false }).limit(5),
       ]),
-      3000
+      5000
     ) as any[]
     dbUser = results[0].data
     profile = results[1].data
