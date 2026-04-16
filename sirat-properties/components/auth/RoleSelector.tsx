@@ -1,7 +1,6 @@
 'use client'
 
 import { BriefcaseBusiness, Building2, Check, Home, ArrowRight } from 'lucide-react'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
 
@@ -53,7 +52,6 @@ export function RoleSelector({ userId: _, userEmail: __ }: { userId: string; use
   const [selected, setSelected] = useState<UserRole | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const router = useRouter()
 
   async function handleConfirm() {
     if (!selected) return
@@ -76,13 +74,16 @@ export function RoleSelector({ userId: _, userEmail: __ }: { userId: string; use
       return
     }
 
-    toast.success('Role saved. Moving to the next step.')
+    toast.success('Role saved. Entering your workspace…')
 
-    if (selected === 'seller' || selected === 'agent') {
-      router.push('/auth/kyc')
-    } else {
-      router.push('/auth/profile-setup')
+    const dashboardMap: Record<string, string> = {
+      buyer: '/buyer/dashboard',
+      seller: '/seller/dashboard',
+      agent: '/agent/dashboard',
     }
+
+    // Hard redirect — ensures cookies reach the server component
+    window.location.href = dashboardMap[selected] ?? '/buyer/dashboard'
   }
 
   return (

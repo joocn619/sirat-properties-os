@@ -16,10 +16,19 @@ export default async function RolePage() {
 
   const { data: existingUser } = await supabase.from('users').select('role').eq('id', user.id).single()
 
-  // Only skip role selection for admin roles — regular users always confirm their role here
-  const adminRoles = ['admin', 'super_admin', 'hr_admin', 'accounts_admin']
-  if (existingUser?.role && adminRoles.includes(existingUser.role)) {
-    redirect('/admin/dashboard')
+  const dashMap: Record<string, string> = {
+    buyer: '/buyer/dashboard',
+    seller: '/seller/dashboard',
+    agent: '/agent/dashboard',
+    admin: '/admin/dashboard',
+    super_admin: '/admin/dashboard',
+    hr_admin: '/admin/dashboard',
+    accounts_admin: '/admin/dashboard',
+  }
+
+  // If role already set, go straight to dashboard
+  if (existingUser?.role) {
+    redirect(dashMap[existingUser.role] ?? '/buyer/dashboard')
   }
 
   return (

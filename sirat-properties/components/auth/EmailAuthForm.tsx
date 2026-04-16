@@ -43,9 +43,8 @@ export function EmailAuthForm() {
         setLoading(false)
         return
       }
-      // Redirect to role selection or dashboard
-      router.push('/auth/role')
-      router.refresh()
+      // Hard redirect so cookies are sent with the new request
+      window.location.href = '/auth/role'
     } else {
       const { error: err } = await supabase.auth.signUp({
         email,
