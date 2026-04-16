@@ -36,11 +36,5 @@ export function createClient() {
     return makeDevClient()
   }
 
-  return createBrowserClient(url, key, {
-    auth: {
-      autoRefreshToken: false,
-      persistSession: false,
-      detectSessionInUrl: false,
-    },
-  })
+  return createBrowserClient(url, key)
 }
